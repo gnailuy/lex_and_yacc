@@ -1,4 +1,4 @@
-A copy of the MGL program from Lex & Yacc by John R. Levine et al.
+A copy of the MGL program from ["Lex & Yacc"](http://shop.oreilly.com/product/9781565920002.do) by John R. Levine et al.
 
 with some minor updates.
 
