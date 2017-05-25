@@ -1,0 +1,24 @@
+screen first
+title "First"
+
+item "dummy line" command dummy action ignore
+    attribute visible
+
+item "run shell" command shell action execute "/bin/bash"
+    attribute visible
+
+item "exit program" command exit action quit
+    attribute visible
+
+end first
+
+main screen second
+title "Second"
+
+item "exit program" command exit action quit
+    attribute invisible
+
+item "other menu" command first action menu first
+    attribute visible
+
+end second
