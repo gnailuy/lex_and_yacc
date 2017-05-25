@@ -6,4 +6,5 @@ mgl
 *.o
 *.gch
 *.mgl.c
-subr.c
+*.out
+
