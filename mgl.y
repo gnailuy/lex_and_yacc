@@ -20,6 +20,8 @@ void dump_data(char **);
 void end_file(void);
 void add_main(char *);
 int check_name(char *);
+void add_var(char *, char *);
+char *find_var(char *);
 
 int yylex();
 int yyerror();
@@ -30,16 +32,27 @@ int yyerror();
     int cmd;
 }
 
-%token <string> QSTRING ID COMMENT
+%token <string> QSTRING ID COMMENT VAR
 %token <cmd> MAIN SCREENY TITLE ITEM COMMAND ACTION EXECUTE EMPTY
 %token <cmd> MENU QUIT IGNORE ATTRIBUTE VISIBLE INVISIBLE END
 
 %type <cmd> action line attribute command
 %type <string> id qstring
 
-%start screens
+%start mgl
 
 %%
+
+mgl:        defs screens
+    |       screens
+    ;
+
+defs:       def_var
+    |       defs def_var
+    ;
+
+def_var:    VAR '=' qstring { add_var($1, $3); }
+    ;
 
 screens:    screen
     |       screens screen
@@ -51,16 +64,14 @@ screen:     screen_name screen_contents screen_terminator
 
 screen_name:    SCREENY id  { start_screen($2); }
     |       SCREENY         { start_screen(strdup("default")); }
-    |       MAIN SCREENY id
-        {
+    |       MAIN SCREENY id {
             if (main_screen != (char *)0) {
                 warning("Overriding pre-defined main screen", (char *)0);
             }
             main_screen = $3;
             start_screen($3);
         }
-    |       MAIN SCREENY
-        {
+    |       MAIN SCREENY {
             if (main_screen != (char *)0) {
                 warning("Overriding pre-defined main screen", (char *)0);
             }
@@ -87,8 +98,7 @@ lines:      line
     |       lines line
     ;
 
-line:       ITEM qstring command ACTION action attribute
-        {
+line:       ITEM qstring command ACTION action attribute {
             item_str = $2;
             add_line($5, $6);
             $$ = ITEM;
@@ -99,13 +109,11 @@ command:    /* empty */     { cmd_str = strdup(""); }
     |       COMMAND id      { cmd_str = $2; }
     ;
 
-action:     EXECUTE qstring
-        {
+action:     EXECUTE qstring {
             act_str = $2;
             $$ = EXECUTE;
         }
-    |       MENU id
-        {
+    |       MENU id {
             act_str = (char *)malloc(strlen($2) + 6);
             strcpy(act_str, "menu_");
             strcat(act_str, $2);
@@ -122,16 +130,15 @@ attribute:  /* empty */         { $$ = VISIBLE; }
     ;
 
 id: ID                      { $$ = $1; }
-    | QSTRING
-        {
+    | QSTRING {
             warning("String literal inappropriate", (char *)0);
             $$ = $1; /* But use it anyway */
         }
     ;
 
 qstring: QSTRING            { $$ = $1; }
-    | ID
-        {
+    |    VAR                { $$ = find_var($1); }
+    | ID {
             warning("Non-string literal inappropriate", (char *)0);
             $$ = $1; /* But use it anyway */
         }

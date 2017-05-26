@@ -11,6 +11,7 @@ ws          [ \t]+
 comment     #.*
 qstring     \"[^\"\n]*[\"\n]
 id          [a-zA-Z][a-zA-Z0-9]*
+var         \$[a-zA-Z][a-zA-Z0-9]*
 nl          \n
 
 %%
@@ -25,6 +26,10 @@ nl          \n
             yylval.string[yyleng-2] = '\0';
             return QSTRING;
         }
+    }
+{var}       {
+        yylval.string = strdup(yytext+1);
+        return VAR;
     }
 screen      { return SCREENY; }
 main        { return MAIN; }
