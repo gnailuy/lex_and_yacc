@@ -65,19 +65,19 @@ screen:     screen_name screen_contents screen_terminator
 screen_name:    SCREENY id  { start_screen($2); }
     |       SCREENY         { start_screen(strdup("default")); }
     |       MAIN SCREENY id {
-            if (main_screen != (char *)0) {
-                warning("Overriding pre-defined main screen", (char *)0);
+                if (main_screen != (char *)0) {
+                    warning("Overriding pre-defined main screen", (char *)0);
+                }
+                main_screen = $3;
+                start_screen($3);
             }
-            main_screen = $3;
-            start_screen($3);
-        }
-    |       MAIN SCREENY {
-            if (main_screen != (char *)0) {
-                warning("Overriding pre-defined main screen", (char *)0);
+    |       MAIN SCREENY    {
+                if (main_screen != (char *)0) {
+                    warning("Overriding pre-defined main screen", (char *)0);
+                }
+                main_screen = strdup("default");
+                start_screen(strdup("default"));
             }
-            main_screen = strdup("default");
-            start_screen(strdup("default"));
-        }
     ;
 
 screen_terminator:  END id  { end_screen($2); }
@@ -99,10 +99,10 @@ lines:      line
     ;
 
 line:       ITEM qstring command ACTION action attribute {
-            item_str = $2;
-            add_line($5, $6);
-            $$ = ITEM;
-        }
+                item_str = $2;
+                add_line($5, $6);
+                $$ = ITEM;
+            }
     ;
 
 command:    /* empty */     { cmd_str = strdup(""); }
@@ -110,16 +110,16 @@ command:    /* empty */     { cmd_str = strdup(""); }
     ;
 
 action:     EXECUTE qstring {
-            act_str = $2;
-            $$ = EXECUTE;
-        }
-    |       MENU id {
-            act_str = (char *)malloc(strlen($2) + 6);
-            strcpy(act_str, "menu_");
-            strcat(act_str, $2);
-            free($2);
-            $$ = MENU;
-        }
+                act_str = $2;
+                $$ = EXECUTE;
+            }
+    |       MENU id         {
+                act_str = (char *)malloc(strlen($2) + 6);
+                strcpy(act_str, "menu_");
+                strcat(act_str, $2);
+                free($2);
+                $$ = MENU;
+            }
     |       QUIT            { $$ = QUIT; }
     |       IGNORE          { $$ = IGNORE; }
     ;
@@ -129,19 +129,19 @@ attribute:  /* empty */         { $$ = VISIBLE; }
     |       ATTRIBUTE INVISIBLE { $$ = INVISIBLE; }
     ;
 
-id: ID                      { $$ = $1; }
-    | QSTRING {
-            warning("String literal inappropriate", (char *)0);
-            $$ = $1; /* But use it anyway */
-        }
+id:         ID              { $$ = $1; }
+    |       QSTRING         {
+                warning("String literal inappropriate", (char *)0);
+                $$ = $1; /* But use it anyway */
+            }
     ;
 
-qstring: QSTRING            { $$ = $1; }
-    |    VAR                { $$ = find_var($1); }
-    | ID {
-            warning("Non-string literal inappropriate", (char *)0);
-            $$ = $1; /* But use it anyway */
-        }
+qstring:    QSTRING         { $$ = $1; }
+    |       VAR             { $$ = find_var($1); }
+    |       ID              {
+                warning("Non-string literal inappropriate", (char *)0);
+                $$ = $1; /* But use it anyway */
+            }
     ;
 
 %%
